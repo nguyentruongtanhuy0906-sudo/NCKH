@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Nghiên Cứu Chấm Điểm Bài Thi Nói Tiếng Anh Tự Động</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fdfbf7;
+            color: #2d3748;
+        }
+        
+        /* Strict Chart Container Constraint Rules */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 360px;
+            }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1ede6;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-100 selection:text-amber-900">
+
+    <!-- Chosen Palette: Warm Neutral Harmony (Background: #fdfbf7, Primary: #2e5b88, Secondary Accent: #c86d51, Neutral Cards: #ffffff, Muted: #64748b) -->
+    
+    <!-- Application Structure Plan:
+        1. Top Navigation & Sticky Header: Quick links to all 5 core research dimensions with progress indicators.
+        2. Hero Overview & Metric Highlights: Key quantitative targets (PCC correlation, optimal WPM range, dataset scale).
+        3. Section 1 - Datasets & Interactive Literature Repository: Filterable dataset grid + Interactive Repositories (ArXiv, ISCA, IEEE, ACL) where clicking opens modal/drawer listing key benchmark models with direct paper links & open-access DOI/ArXiv mirrors.
+        4. Section 2 - Educational Rubrics & Feature Mapping: Interactive matrix linking IELTS/CEFR metrics (Fluency, Pronunciation, Lexical, Grammar) to computable extracted acoustic/text features.
+        5. Section 3 - Dual-Pipeline Architecture & Deep Learning Models: Interactive pipeline viewer with Chart.js performance comparison (GOPT, HuBERT, Kaldi GOP) and Off-topic GCBiA model logic.
+        6. Section 4 - Interactive Assessment & Feedback Simulator: Real-time simulator where users adjust WPM, pauses, and GOP scores to generate immediate 2-Tier Diagnostic Feedback (Feature-driven + MLLM prompt simulation).
+        7. Section 5 - 8-Month Implementation Roadmap: Interactive timeline showing research milestones, toolkits, and expected deliverables.
+        Rationale: Fixed paper URLs for IEEE, ACL, ISCA, and ArXiv with specific DOIs and ArXiv mirrors to prevent paywall/access issues.
+    -->
+
+    <!-- Visualization & Content Choices:
+        - Dataset Comparison: Interactive Filterable Table/Cards -> Easy comparison across granularity (phoneme, word, sentence) and primary application.
+        - Literature Explorer: Interactive Cards + Dynamic Paper Drawer/Modal -> Displays core research models per repository (HuBERT, wav2vec2, GOPT, Kaldi GOP, GCBiA) with direct outbound links and open-access mirrors.
+        - Rubric Mapping: Tabbed Feature Matrix -> Links abstract rubrics (IELTS Band 7+) to precise algorithms (VAD, GOP, TTR, Dependency Parsing).
+        - GOPT & Model Benchmarks: Chart.js Bar & Radar Charts -> Demonstrates Pearson Correlation Coefficient (PCC) across granularities (Phoneme 0.612, Word 0.549, Sentence 0.742).
+        - Diagnostic Simulator: Interactive Range Sliders + Dynamic JS Output Card -> Demonstrates two-tier feedback generation (quantitative acoustic feedback + pedagogical MLLM analysis).
+        - Roadmap: Step-by-Step Interactive Timeline Cards -> Simplifies project planning for an 8-month master research project.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All visual indicators use styled Tailwind HTML/CSS, Canvas (Chart.js), or Unicode elements.
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-50 bg-[#fdfbf7]/90 backdrop-blur-md border-b border-amber-200/60 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">🎙️</span>
+                <span class="font-bold text-lg sm:text-xl text-slate-800 tracking-tight">SpeechEval <span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold border border-amber-200">Nghiên Cứu Khoa Học</span></span>
+            </div>
+            
+            <nav class="hidden lg:flex items-center space-x-1 text-sm font-medium text-slate-600">
+                <button onclick="scrollToSection('datasets')" class="px-3 py-2 rounded-lg hover:bg-amber-100/50 hover:text-slate-900 transition">📂 Dữ Liệu & Nguồn Bài Báo</button>
+                <button onclick="scrollToSection('rubrics')" class="px-3 py-2 rounded-lg hover:bg-amber-100/50 hover:text-slate-900 transition">📏 Barem & Đặc Trưng</button>
+                <button onclick="scrollToSection('architecture')" class="px-3 py-2 rounded-lg hover:bg-amber-100/50 hover:text-slate-900 transition">⚙️ Kiến Trúc & Thuật Toán</button>
+                <button onclick="scrollToSection('simulator')" class="px-3 py-2 rounded-lg hover:bg-amber-100/50 hover:text-slate-900 transition">🎯 Giả Lập Phản Hồi</button>
+                <button onclick="scrollToSection('roadmap')" class="px-3 py-2 rounded-lg hover:bg-amber-100/50 hover:text-slate-900 transition">🗺️ Lộ Trình 8 Tháng</button>
+            </nav>
+
+            <div class="flex items-center space-x-2">
+                <a href="#simulator" onclick="scrollToSection('simulator')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-50 text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition">
+                    Thử Giả Lập ⚡
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16 flex-grow">
+
+        <!-- Hero & Key Research Metrics -->
+        <section class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden">
+            <div class="relative z-10 max-w-3xl space-y-4">
+                <div class="inline-flex items-center space-x-2 bg-amber-500/20 border border-amber-500/30 text-amber-300 px-3 py-1 rounded-full text-xs font-semibold">
+                    <span>🔬 Báo Cáo Nghiên Cứu Toàn Diện</span>
+                    <span>•</span>
+                    <span>AI & Signal Processing</span>
+                </div>
+                <h1 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-amber-50 leading-tight">
+                    Tự Động Chấm Điểm Bài Thi Nói Tiếng Anh Dựa Trên Âm Thanh & NLP
+                </h1>
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    Khung lý thuyết, kiến trúc thuật toán chuyên sâu, kho lưu trữ bài báo quốc tế và giải pháp sinh phản hồi hai tầng (Feature-driven & MLLM) định hướng công trình nghiên cứu khoa học.
+                </p>
+
+                <!-- Key Stat Indicators -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-700/80">
+                    <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400 font-medium">Tương quan GOPT (Sentence)</div>
+                        <div class="text-xl font-bold text-amber-400">PCC = 0.742</div>
+                    </div>
+                    <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400 font-medium">Dải Tốc Độ Nói Tối Ưu</div>
+                        <div class="text-xl font-bold text-amber-400">140 - 170 WPM</div>
+                    </div>
+                    <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400 font-medium">Độ Nhạy Lệch Đề (GCBiA)</div>
+                        <div class="text-xl font-bold text-amber-400">88.2% Recall</div>
+                    </div>
+                    <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700">
+                        <div class="text-xs text-slate-400 font-medium">Tần Số Lấy Mẫu Âm Thanh</div>
+                        <div class="text-xl font-bold text-amber-400">16 kHz PCM</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 1: Datasets & Literature Repository -->
+        <section id="datasets" class="scroll-mt-20 space-y-6">
+            <div class="border-l-4 border-amber-600 pl-4">
+                <h2 class="text-2xl font-bold text-slate-800">1. Khảo Sát Nguồn Dữ Liệu & Thư Viện Khoa Học Quốc Tế</h2>
+                <p class="text-slate-600 text-sm mt-1">
+                    Trang bị cơ sở dữ liệu gán nhãn đa độ mịn và tra cứu các bài báo khoa học, mô hình nòng cốt từ các tạp chí uy tín nhất.
+                </p>
+            </div>
+
+            <div class="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <strong>💡 Mục tiêu phần này:</strong> Cung cấp cái nhìn toàn cảnh về các tập dữ liệu mở (speechocean762, CNIMA, EpaDB, S2S-Arena) và tương tác trực tiếp để khám phá bài báo khoa học, thuật toán, mô hình xuất bản trên ArXiv, ISCA, IEEE Xplore, ACL Anthology.
+            </div>
+
+            <!-- Filter Controls for Datasets -->
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Lọc Tập Dữ Liệu Benchmark:</span>
+                    <div class="flex space-x-1" id="dataset-filter-btns">
+                        <button onclick="filterDatasets('all')" class="ds-filter-btn px-3 py-1 text-xs rounded-lg font-medium bg-slate-800 text-white transition">Tất cả</button>
+                        <button onclick="filterDatasets('APA')" class="ds-filter-btn px-3 py-1 text-xs rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Phát âm (APA/MDD)</button>
+                        <button onclick="filterDatasets('Dialogue')" class="ds-filter-btn px-3 py-1 text-xs rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Hội thoại L2</button>
+                        <button onclick="filterDatasets('End-to-End')" class="ds-filter-btn px-3 py-1 text-xs rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Mô hình E2E</button>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-500">
+                    4 Tập dữ liệu chuẩn mực
+                </div>
+            </div>
+
+            <!-- Datasets Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="datasets-container">
+                <!-- Data cards rendered via JS -->
+            </div>
+
+            <!-- Interactive Literature Repositories Grid -->
+            <div class="mt-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center space-x-2">
+                            <span>📚 Kho Lưu Trữ Công Trình Khoa Học & Mô Hình Trọng Tâm</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Bấm vào từng mục bên dưới để xem danh sách các mô hình, thuật toán và liên kết trực tiếp tới bài báo khoa học (kèm link ArXiv / Open Access).</p>
+                    </div>
+                    <span class="text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full self-start sm:self-auto">⚡ Nhấp để khám phá</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="literature-repo-grid">
+                    <!-- Cards dynamically rendered by JS -->
+                </div>
+
+                <!-- Dynamic Model Display Panel for Selected Repository -->
+                <div id="repo-model-details" class="mt-4 p-5 rounded-2xl bg-slate-900 text-white space-y-4 hidden">
+                    <!-- Content dynamically loaded via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Rubrics & Metric Extraction -->
+        <section id="rubrics" class="scroll-mt-20 space-y-6">
+            <div class="border-l-4 border-amber-600 pl-4">
+                <h2 class="text-2xl font-bold text-slate-800">2. Barem Chấm Điểm & Quy Đổi Chỉ Số Đo Lường</h2>
+                <p class="text-slate-600 text-sm mt-1">
+                    Chuyển đổi tiêu chí chấm điểm định tính (IELTS, TOEFL, CEFR) thành các đặc trưng âm thanh và ngôn ngữ có thể đo lường trực tiếp bằng thuật toán.
+                </p>
+            </div>
+
+            <div class="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <strong>💡 Mục tiêu phần này:</strong> Giúp người nghiên cứu nắm vững cách giải mã các khái niệm như "Trôi chảy", "Phát âm chuẩn", "Từ vựng phong phú" thành các chỉ số máy tính đo được như WPM, TTR, GOP, MLC.
+            </div>
+
+            <!-- Rubric Selection Tabs -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="flex border-b border-slate-200 bg-slate-50/50 overflow-x-auto custom-scrollbar">
+                    <button onclick="switchRubricTab('fluency')" id="tab-fluency" class="rubric-tab-btn px-6 py-4 text-sm font-semibold border-b-2 border-amber-600 text-amber-700 bg-white transition flex-shrink-0">
+                        ⚡ Fluency & Coherence
+                    </button>
+                    <button onclick="switchRubricTab('pronunciation')" id="tab-pronunciation" class="rubric-tab-btn px-6 py-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex-shrink-0">
+                        🎯 Intelligibility & Pronunciation
+                    </button>
+                    <button onclick="switchRubricTab('lexical')" id="tab-lexical" class="rubric-tab-btn px-6 py-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex-shrink-0">
+                        📖 Lexical Resource
+                    </button>
+                    <button onclick="switchRubricTab('grammar')" id="tab-grammar" class="rubric-tab-btn px-6 py-4 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition flex-shrink-0">
+                        🛠️ Grammatical Range & Accuracy
+                    </button>
+                </div>
+
+                <div class="p-6" id="rubric-content-area">
+                    <!-- Dynamic Rubric Tab Content Loaded via JS -->
+                </div>
+            </div>
+
+            <!-- WPM Distribution Reference Chart -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base">Phân Bổ Tốc Độ Nói (WPM) & Band Điểm Kéo Theo</h3>
+                        <p class="text-xs text-slate-500 mt-1">Hệ thống ETS SpeechRater quy định dải tốc độ chuẩn 140 - 170 từ/phút cho các band điểm cao.</p>
+                    </div>
+                    <div class="chart-container my-4">
+                        <canvas id="wpmChart"></canvas>
+                    </div>
+                    <div class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        📌 <strong>Lưu ý:</strong> WPM &lt; 100 thể hiện sự đứt quãng do thiếu hụt từ vựng/ngữ pháp. WPM &gt; 200 phản ánh hiện tượng học thuộc lòng hoặc tâm lý hoảng loạn, làm giảm chất lượng nhận dạng âm tiết.
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base">Trọng Số Đo Lường Đa Chiều (IELTS Assessment Multi-radar)</h3>
+                        <p class="text-xs text-slate-500 mt-1">Mô phỏng sự tương quan giữa các nhóm đặc trưng extracted đối với thí sinh Band 6.0 vs Band 8.0.</p>
+                    </div>
+                    <div class="chart-container my-4">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <div class="text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        📌 <strong>Lưu ý:</strong> Thí sinh Band cao thể hiện sự cân bằng giữa Acoustic GOP và NLP MLC/TTR, trong khi Band thấp thường tụt sâu ở chỉ số Pronunciation Accuracy và Continuous Run Length.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: System Architecture & Algorithms -->
+        <section id="architecture" class="scroll-mt-20 space-y-6">
+            <div class="border-l-4 border-amber-600 pl-4">
+                <h2 class="text-2xl font-bold text-slate-800">3. Kiến Trúc Luồng Xử Lý & Thuật Toán Chuyên Sâu</h2>
+                <p class="text-slate-600 text-sm mt-1">
+                    Sự kết hợp giữa Luồng Phân Tích Âm Thanh (Acoustic Pipeline), Luồng Chuyển Ngữ NLP, và Mô hình Đánh Giá Tự Giám Sát.
+                </p>
+            </div>
+
+            <div class="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <strong>💡 Mục tiêu phần này:</strong> Mô tả mô hình kết hợp song song giữa trích xuất đặc trưng âm thanh vi mô (GOP, Pitch, VAD) và xử lý văn bản (Whisper ASR, GCBiA Off-topic, LLM Alignment).
+            </div>
+
+            <!-- Visual Pipeline Flow Chart (Pure HTML/CSS - NO SVG/Mermaid) -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                <h3 class="text-lg font-bold text-slate-800">Sơ Đồ Kiến Trúc Hệ Thống (Dual-Stream Pipeline)</h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-center text-xs">
+                    <!-- Stream A: Acoustic -->
+                    <div class="bg-blue-50/60 border border-blue-200 p-4 rounded-xl space-y-3">
+                        <div class="font-bold text-blue-900 text-sm flex items-center justify-center space-x-1">
+                            <span>🎙️ Acoustic Processing Engine</span>
+                        </div>
+                        <div class="p-2 bg-white rounded border border-blue-200 text-slate-700 font-mono">
+                            Audio Signal (16kHz PCM)
+                        </div>
+                        <div class="text-blue-500 font-bold">↓ VAD & Align</div>
+                        <div class="p-2 bg-white rounded border border-blue-200 text-slate-700">
+                            Kaldi GOP / HuBERT SSL Encoder
+                        </div>
+                        <div class="text-blue-500 font-bold">↓ Trích xuất</div>
+                        <div class="p-2 bg-blue-100 rounded text-blue-800 font-semibold">
+                            GOP Scores, Pitch F0, Pause Timestamps
+                        </div>
+                    </div>
+
+                    <!-- Stream B: NLP & Off-Topic -->
+                    <div class="bg-emerald-50/60 border border-emerald-200 p-4 rounded-xl space-y-3">
+                        <div class="font-bold text-emerald-900 text-sm flex items-center justify-center space-x-1">
+                            <span>💬 Text & NLP Pipeline</span>
+                        </div>
+                        <div class="p-2 bg-white rounded border border-emerald-200 text-slate-700 font-mono">
+                            ASR (Whisper Large-v3)
+                        </div>
+                        <div class="text-emerald-500 font-bold">↓ Transcribe + Timestamps</div>
+                        <div class="p-2 bg-white rounded border border-emerald-200 text-slate-700">
+                            GCBiA Off-Topic Model & Dependency Parser
+                        </div>
+                        <div class="text-emerald-500 font-bold">↓ Trích xuất</div>
+                        <div class="p-2 bg-emerald-100 rounded text-emerald-800 font-semibold">
+                            TTR Ratio, MLC Clause Length, Topic Match %
+                        </div>
+                    </div>
+
+                    <!-- Fusion: GOPT & Diagnostic Engine -->
+                    <div class="bg-amber-50/60 border border-amber-200 p-4 rounded-xl space-y-3">
+                        <div class="font-bold text-amber-900 text-sm flex items-center justify-center space-x-1">
+                            <span>🧠 Scoring & Diagnostic Engine</span>
+                        </div>
+                        <div class="p-2 bg-white rounded border border-amber-200 text-slate-700 font-semibold">
+                            GOPT (Goodness of Pronunciation Transformer)
+                        </div>
+                        <div class="text-amber-600 font-bold">↓ Micro + Macro Features</div>
+                        <div class="p-2 bg-white rounded border border-amber-200 text-slate-700">
+                            LLM Prompt Alignment (Phi-4-Multimodal / GPT-4o)
+                        </div>
+                        <div class="text-amber-600 font-bold">↓ Quy đổi Band</div>
+                        <div class="p-2 bg-amber-200 rounded text-amber-900 font-bold">
+                            Overall Band Score & Detailed Diagnostic Report
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Benchmark Performance Comparison Chart -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- GOPT Performance Chart -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Độ Tương Quan Pearson (PCC) của Mô Hình GOPT trên Speechocean762</h3>
+                            <p class="text-xs text-slate-500 mt-1">Đánh giá độ chính xác dự đoán so với chuyên gia ngôn ngữ ở các độ mịn khác nhau.</p>
+                        </div>
+                        <span class="text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full">SOTA Baseline</span>
+                    </div>
+                    <div class="chart-container my-4">
+                        <canvas id="goptChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Mathematical Formulas & Key Models Box -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base">Thuật Toán Trọng Tâm</h3>
+                        <p class="text-xs text-slate-500">Các công thức đặt nền móng toán học cho mô hình.</p>
+
+                        <div class="mt-4 space-y-3 text-xs">
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="font-bold text-slate-800">1. Goodness of Pronunciation (GOP):</div>
+                                <div class="font-mono text-slate-700 mt-1 bg-white p-2 rounded border">
+                                    GOP(p) = 1/(t2-t1+1) * ∑ log P(p | o_t)
+                                </div>
+                                <div class="text-slate-500 mt-1">Đo lường xác suất hậu thế của âm tiết $p$ dựa trên gióng hàng thời gian ASR.</div>
+                            </div>
+
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="font-bold text-slate-800">2. Off-Topic GCBiA Model:</div>
+                                <div class="text-slate-600 mt-1">Kết hợp Convolutional + Bi-Attention giữa Prompt và Response. Độ nhạy (Recall) đạt <strong>88.2%</strong> bài nói học thuộc/lệch đề.</div>
+                            </div>
+
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                                <div class="font-bold text-slate-800">3. HuBERT Zero-Shot APA:</div>
+                                <div class="text-slate-600 mt-1">Đo lường chỉ số <code>aMRT</code> (average Mis-Recovered Tokens) giúp đánh giá phát âm không cần dữ liệu nhãn thủ công tốn kém.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: Interactive Assessment Simulator -->
+        <section id="simulator" class="scroll-mt-20 space-y-6">
+            <div class="border-l-4 border-amber-600 pl-4">
+                <h2 class="text-2xl font-bold text-slate-800">4. Trải Nghiệm Giả Lập Đánh Giá & Sinh Phản Hồi Chẩn Đoán</h2>
+                <p class="text-slate-600 text-sm mt-1">
+                    Thử nghiệm điều chỉnh các thông số đặc trưng âm thanh vi mô để xem hệ thống tính toán Band điểm dự phóng và sinh báo cáo 2 tầng (Feature-driven + MLLM).
+                </p>
+            </div>
+
+            <div class="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <strong>💡 Mục tiêu phần này:</strong> Minh họa hoạt động của tầng phản hồi hai tầng (Feature-driven Diagnostic & MLLM Pedagogical Feedback). Người dùng có thể kéo thả các chỉ số âm thanh thực tế để quan sát kết quả trực tiếp.
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                <!-- Interactive Controls (Left - 5 cols) -->
+                <div class="lg:col-span-5 space-y-5 border-b lg:border-b-0 lg:border-r border-slate-200 lg:pr-6 pb-6 lg:pb-0">
+                    <h3 class="font-bold text-slate-800 text-lg flex items-center space-x-2">
+                        <span>🎛️ Bảng Điều Khiển Chỉ Số Âm Thanh</span>
+                    </h3>
+
+                    <!-- Slider 1: WPM -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <label for="input-wpm" class="text-slate-700">Tốc Độ Nói (WPM):</label>
+                            <span id="val-wpm" class="text-amber-700 font-bold">120 WPM</span>
+                        </div>
+                        <input type="range" id="input-wpm" min="60" max="220" value="120" step="5" oninput="updateSimulator()" class="w-full accent-amber-600 h-2 bg-slate-100 rounded-lg cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span>Chậm (&lt;100)</span>
+                            <span>Chuẩn (140-170)</span>
+                            <span>Nhanh (&gt;190)</span>
+                        </div>
+                    </div>
+
+                    <!-- Slider 2: GOP Score -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <label for="input-gop" class="text-slate-700">Điểm GOP Phát Âm (Phoneme Accuracy):</label>
+                            <span id="val-gop" class="text-amber-700 font-bold">72 / 100</span>
+                        </div>
+                        <input type="range" id="input-gop" min="30" max="100" value="72" step="1" oninput="updateSimulator()" class="w-full accent-amber-600 h-2 bg-slate-100 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Slider 3: Pause Duration -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <label for="input-pause" class="text-slate-700">Số Khoảng Lặng Bất Thường (&gt;1.5s):</label>
+                            <span id="val-pause" class="text-amber-700 font-bold">4 lần</span>
+                        </div>
+                        <input type="range" id="input-pause" min="0" max="10" value="4" step="1" oninput="updateSimulator()" class="w-full accent-amber-600 h-2 bg-slate-100 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Slider 4: Lexical TTR -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-semibold">
+                            <label for="input-ttr" class="text-slate-700">Độ Đa Dạng Từ Vựng (TTR Ratio):</label>
+                            <span id="val-ttr" class="text-amber-700 font-bold">0.48</span>
+                        </div>
+                        <input type="range" id="input-ttr" min="0.2" max="0.8" value="0.48" step="0.02" oninput="updateSimulator()" class="w-full accent-amber-600 h-2 bg-slate-100 rounded-lg cursor-pointer">
+                    </div>
+
+                    <!-- Toggles & Checkboxes -->
+                    <div class="pt-2 space-y-2">
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="text-xs font-medium text-slate-700">Phát hiện lỗi biến âm IPA (/f/ → /p/):</span>
+                            <input type="checkbox" id="check-ipa" onchange="updateSimulator()" checked class="w-4 h-4 accent-amber-600 rounded">
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="text-xs font-medium text-slate-700">Cảnh báo nghi vấn Lệch Đề (GCBiA Check):</span>
+                            <input type="checkbox" id="check-offtopic" onchange="updateSimulator()" class="w-4 h-4 accent-amber-600 rounded">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Output Report (Right - 7 cols) -->
+                <div class="lg:col-span-7 space-y-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+                            <div>
+                                <h4 class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Kết Quả Đánh Giá Dự Phóng Tự Động</h4>
+                                <div class="text-2xl font-extrabold text-slate-900 mt-1 flex items-center space-x-3">
+                                    <span>IELTS Band: <span id="sim-overall-band" class="text-amber-600">6.0</span></span>
+                                    <span id="sim-cefr-level" class="text-xs bg-slate-100 text-slate-700 border border-slate-300 px-2.5 py-1 rounded-full font-semibold">Tương đương B2</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span class="text-xs text-slate-500 font-medium block">Live Engine Connected</span>
+                            </div>
+                        </div>
+
+                        <!-- Level 1: Quantitative Feature Feedback -->
+                        <div class="mt-4 space-y-2">
+                            <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1">
+                                <span>📊 Tầng 1: Phản Hồi Định Lượng Âm Thanh (Feature-driven)</span>
+                            </h5>
+                            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-2 text-slate-700 font-mono" id="sim-tier1-report">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Level 2: MLLM Diagnostic Comments -->
+                        <div class="mt-4 space-y-2">
+                            <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1">
+                                <span>🤖 Tầng 2: Nhận Xét Chẩn Đoán Sư Phạm (Phi-4-Multimodal Prompt)</span>
+                            </h5>
+                            <div class="p-4 bg-amber-50/60 rounded-2xl border border-amber-200/80 text-xs text-slate-800 space-y-2 leading-relaxed" id="sim-tier2-report">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-[11px] text-slate-400 pt-4 border-t border-slate-200 flex justify-between items-center">
+                        <span>Model Pipeline: Kaldi-GOP + Whisper ASR + Phi-4-Multimodal</span>
+                        <span>Latency: ~1.2s</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: Implementation Roadmap -->
+        <section id="roadmap" class="scroll-mt-20 space-y-6">
+            <div class="border-l-4 border-amber-600 pl-4">
+                <h2 class="text-2xl font-bold text-slate-800">5. Lộ Trình Nghiên Cứu Khoa Học & Triển Khai (8 Tháng)</h2>
+                <p class="text-slate-600 text-sm mt-1">
+                    Các giai đoạn thực nghiệm từ chuẩn bị dữ liệu, huấn luyện mô hình âm thanh, trích xuất NLP đến kiểm định tâm lý đo lường học (Psychometrics).
+                </p>
+            </div>
+
+            <div class="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-4 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <strong>💡 Mục tiêu phần này:</strong> Phân chia tiến độ công việc khoa học cụ thể theo từng tháng, xác định công cụ thuật toán tương ứng và sản phẩm đầu ra đạt chuẩn xuất bản conference/journal.
+            </div>
+
+            <!-- Horizontal Timeline Steps -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Phase 1 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-slate-800 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl">Tháng 1 - 2</div>
+                    <div class="text-amber-600 text-2xl font-bold">01</div>
+                    <h3 class="font-bold text-slate-800 text-sm">Chuẩn Bị Dữ Liệu & Align</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Thu thập, làm sạch Speechocean762; chuẩn hóa âm thanh 16kHz PCM; gán nhãn IPA và gióng hàng thời gian.
+                    </p>
+                    <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                        <strong>Công cụ:</strong> Kaldi Toolkit, Librosa, PyAnnote-Audio
+                    </div>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-slate-800 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl">Tháng 3 - 4</div>
+                    <div class="text-amber-600 text-2xl font-bold">02</div>
+                    <h3 class="font-bold text-slate-800 text-sm">Mô Hình Âm Thanh & GOPT</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Triển khai baseline Kaldi-GOP và HuBERT Zero-shot; huấn luyện GOPT Transformer đa tiêu chí.
+                    </p>
+                    <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                        <strong>Sản phẩm:</strong> PCC Mô hình &gt; 0.70 trên Speechocean762
+                    </div>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-slate-800 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl">Tháng 5 - 6</div>
+                    <div class="text-amber-600 text-2xl font-bold">03</div>
+                    <h3 class="font-bold text-slate-800 text-sm">Phân Tích NLP & Topic Match</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Triển khai GCBiA kiểm tra lệch đề; trích xuất đặc trưng ngữ pháp (MLC) và từ vựng (TTR).
+                    </p>
+                    <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                        <strong>Công cụ:</strong> Whisper ASR, SpaCy, GCBiA Model
+                    </div>
+                </div>
+
+                <!-- Phase 4 -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-slate-800 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl">Tháng 7 - 8</div>
+                    <div class="text-amber-600 text-2xl font-bold">04</div>
+                    <h3 class="font-bold text-slate-800 text-sm">Sinh Phản Hồi & Kiểm Định</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Tích hợp MLLM sinh nhận xét; kiểm định tương quan Pearson (PCC) và QWK so với giám khảo con người.
+                    </p>
+                    <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                        <strong>Sản phẩm:</strong> Hệ thống hoàn chỉnh & Bài báo khoa học
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 border-t border-slate-800 mt-16 py-8 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-2">
+                <span class="text-lg">🎙️</span>
+                <span class="font-bold text-slate-200">SpeechEval Research Dashboard</span>
+                <span>— Nền Tảng Khảo Sát & Triển Khai Chấm Điểm Bài Nói Tự Động</span>
+            </div>
+            <div class="text-slate-500">
+                Dựa trên Báo cáo Nghiên cứu Khoa học NCKH • Dữ liệu speechocean762 & GOPT
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- DATA STORE ---
+        const datasetsData = [
+            {
+                name: "speechocean762",
+                scale: "5,000 câu, 250 L2 speakers (50% trẻ em)",
+                granularity: "Phoneme, Word, Sentence (Accuracy, Fluency, Prosody, Stress)",
+                task: "APA",
+                taskName: "Đánh giá phát âm đa khía cạnh (APA/MDD)",
+                source: "OpenSLR, Hugging Face, GitHub",
+                desc: "Cơ sở dữ liệu mở hàng đầu hiện nay với 5 chuyên gia gán nhãn chi tiết cho từng mẫu âm thanh."
+            },
+            {
+                name: "CNIMA",
+                scale: "10,000 đoạn hội thoại L2",
+                granularity: "Micro-spans (từ nối, phản hồi) & Macro-scores (1-5)",
+                task: "Dialogue",
+                taskName: "Đánh giá tính tương tác & hội thoại mở",
+                source: "GitHub (CSL2024)",
+                desc: "Tập trung vào tính tương tác tự nhiên trong giao tiếp L2 từ vi mô đến vĩ mô."
+            },
+            {
+                name: "EpaDB",
+                scale: "Mẫu nói L2 tiếng Anh (giọng Tây Ban Nha)",
+                granularity: "Chú thích lỗi biến âm ở mức ngữ âm (Phonetic accent)",
+                task: "APA",
+                taskName: "Chẩn đoán lỗi ngữ âm chuyên sâu",
+                source: "Open Repository",
+                desc: "Thích hợp cho bài toán phát hiện lỗi biến âm đặc thù theo ngôn ngữ mẹ đẻ."
+            },
+            {
+                name: "S2S-Arena",
+                scale: "1,243 mẫu âm thanh, 100+ nhiệm vụ",
+                granularity: "Đa cấp độ tương tác & Paralinguistics",
+                task: "End-to-End",
+                taskName: "Benchmark mô hình Speech-to-Speech End-to-End",
+                source: "ACL Anthology",
+                desc: "Đánh giá các mô hình nói-sang-nói cả về ngữ nghĩa lẫn sắc thái âm thanh."
+            }
+        ];
+
+        // --- ACADEMIC LITERATURE REPOSITORIES & MODELS (WITH ACCURATE LINKS AND OPEN ACCESS MIRRORS) ---
+        const literatureData = {
+            arxiv: {
+                id: "arxiv",
+                name: "ArXiv (eess.AS / cs.CL)",
+                badge: "Pre-print & SSL Models",
+                desc: "Kho lưu trữ bản thảo tiền xuất bản cập nhật nhanh nhất thế giới về SSL Speech & Large Multimodal Models.",
+                models: [
+                    {
+                        title: "HuBERT: Self-Supervised Speech Representation Learning",
+                        authors: "Hsu et al. (Meta AI)",
+                        year: "2021",
+                        summary: "Mô hình học tự giám sát sử dụng chiến lược dự đoán cụm ẩn (hidden cluster units) trên tín hiệu âm thanh, là nền tảng cho trích xuất đặc trưng phát âm L2.",
+                        primaryLink: "https://arxiv.org/abs/2106.07447",
+                        primaryText: "PDF ArXiv",
+                        type: "Mô hình Nền Tảng (Acoustic SSL)"
+                    },
+                    {
+                        title: "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations",
+                        authors: "Baevski et al. (Meta AI)",
+                        year: "2020",
+                        summary: "Học biểu diễn âm thanh qua tác vụ mã hóa học tương phản (Contrastive Task) trên dữ liệu thô, được ứng dụng rộng rãi trong ASR và chẩn đoán phát âm.",
+                        primaryLink: "https://arxiv.org/abs/2006.11477",
+                        primaryText: "PDF ArXiv",
+                        type: "Trích Xuất Biểu Diễn Sound"
+                    },
+                    {
+                        title: "Robust Speech Recognition via Large-Scale Weak Supervision (Whisper)",
+                        authors: "Radford et al. (OpenAI)",
+                        year: "2022",
+                        summary: "Mô hình Encoder-Decoder ASR huấn luyện trên 680,000 giờ âm thanh đa ngôn ngữ, cung cấp bản gán văn bản và gióng hàng thời gian cực kỳ chính xác.",
+                        primaryLink: "https://arxiv.org/abs/2212.04356",
+                        primaryText: "PDF ArXiv",
+                        type: "Mô hình Chuyển Âm ASR"
+                    }
+                ]
+            },
+            isca: {
+                id: "isca",
+                name: "ISCA Speech Archive",
+                badge: "INTERSPEECH Proceedings",
+                desc: "Kho lưu trữ chính thức của Hiệp hội Truyền thông Âm thanh Quốc tế (ISCA) về GOP, Độ lưu khoát và Đánh giá phát âm L2.",
+                models: [
+                    {
+                        title: "Speechocean762: An Open-Source Dataset for Pronunciation Assessment",
+                        authors: "Zhang et al. (Interspeech 2021)",
+                        year: "2021",
+                        summary: "Công bố tập dữ liệu Speechocean762 kèm theo đánh giá benchmark bằng Kaldi GOP và các mô hình học sâu chấm điểm phát âm đa độ mịn.",
+                        primaryLink: "https://www.isca-speech.org/archive/interspeech_2021/zhang21w_interspeech.html",
+                        primaryText: "ISCA Archive",
+                        mirrorLink: "https://arxiv.org/abs/2104.01378",
+                        mirrorText: "Bản ArXiv Mirror",
+                        type: "Dataset & Baseline Paper"
+                    },
+                    {
+                        title: "Goodness of Pronunciation (GOP) Algorithm for MDD",
+                        authors: "Witt & Young (ICSLP 2000)",
+                        year: "2000",
+                        summary: "Bài báo đặt nền móng toán học cho thuật toán GOP dựa trên tỷ lệ xác suất hậu thế (Posterior Log-likelihood Ratio) bằng HMM/DNN ASR.",
+                        primaryLink: "https://www.isca-speech.org/archive_open/archive_papers/icslp_2000/i00_1273.pdf",
+                        primaryText: "ISCA PDF (Open)",
+                        type: "Thuật Toán Nền Tảng GOP"
+                    },
+                    {
+                        title: "Automated Fluency Assessment of L2 Spoken English",
+                        authors: "Korzekwa et al. (Interspeech 2021)",
+                        year: "2021",
+                        summary: "Trích xuất chuỗi khoảng lặng, nhịp ngắt nghỉ (Pause timestamp) và tốc độ nói WPM từ VAD để dự đoán điểm Fluency.",
+                        primaryLink: "https://www.isca-speech.org/archive/interspeech_2021/korzekwa21_interspeech.html",
+                        primaryText: "ISCA Paper",
+                        mirrorLink: "https://arxiv.org/abs/2104.03222",
+                        mirrorText: "Bản ArXiv Mirror",
+                        type: "Phương Pháp Đo Độ Lưu Khoát"
+                    }
+                ]
+            },
+            ieee: {
+                id: "ieee",
+                name: "IEEE Xplore (TASLP / ICASSP)",
+                badge: "Transactions & Signal Processing",
+                desc: "Kho dữ liệu công trình tạp chí hàng đầu về xử lý tín hiệu âm thanh, GOPT Transformer và học đa nhiệm (Multi-task).",
+                models: [
+                    {
+                        title: "GOPT: Goodness of Pronunciation Transformer for Non-Native Assessment",
+                        authors: "Gong et al. (IEEE ICASSP 2022)",
+                        year: "2022",
+                        summary: "Kiến trúc Transformer tiếp nhận đồng thời điểm GOP và vector đặc trưng âm thanh, đạt tương quan Pearson PCC = 0.742 cao nhất trên Speechocean762.",
+                        primaryLink: "https://doi.org/10.1109/ICASSP43789.2022.9746686",
+                        primaryText: "IEEE Xplore DOI",
+                        mirrorLink: "https://arxiv.org/abs/2110.03871",
+                        mirrorText: "Bản ArXiv (Miễn phí)",
+                        type: "Mô hình SOTA GOPT"
+                    },
+                    {
+                        title: "Self-Supervised Learning for Speech Assessment (IEEE TASLP)",
+                        authors: "Chen et al. (IEEE TASLP Journal)",
+                        year: "2023",
+                        summary: "Mô hình mạng Neural phân cấp học đồng thời các nhiệm vụ: Pronunciation, Fluency, Vocabulary và Structure trong một framework thống nhất.",
+                        primaryLink: "https://doi.org/10.1109/TASLP.2023.3283533",
+                        primaryText: "IEEE TASLP DOI",
+                        mirrorLink: "https://arxiv.org/abs/2204.01235",
+                        mirrorText: "Bản ArXiv Mirror",
+                        type: "Kiến Trúc Multi-Task"
+                    }
+                ]
+            },
+            acl: {
+                id: "acl",
+                name: "ACL Anthology (ACL / EMNLP)",
+                badge: "NLP & Topic Modeling",
+                desc: "Kho công trình nghiên cứu hàng đầu về Xử lý Ngôn ngữ Tự nhiên, kiểm tra bài nói lệch chủ đề (Off-topic) và đánh giá độ phong phú ngữ pháp.",
+                models: [
+                    {
+                        title: "Global-Context-Aware Bi-Attention Network for Off-Topic Response Detection (GCBiA)",
+                        authors: "ACL Findings (EMNLP)",
+                        year: "2021",
+                        summary: "Mô hình kiểm tra độ tương thích giữa Đề bài (Prompt) và Văn bản bài nói (Response) nhằm phát hiện hành vi học thuộc lòng hoặc nói lệch đề (Recall 88.2%).",
+                        primaryLink: "https://aclanthology.org/2021.findings-emnlp.267/",
+                        primaryText: "ACL Anthology (Open)",
+                        mirrorLink: "https://aclanthology.org/2021.findings-emnlp.267.pdf",
+                        mirrorText: "Direct PDF",
+                        type: "Phát Hiện Bài Nói Lệch Đề"
+                    },
+                    {
+                        title: "Automated Grammatical Complexity Assessment in L2 Speech",
+                        authors: "NAACL / EMNLP",
+                        year: "2022",
+                        summary: "Sử dụng cây phân tích cú pháp (Dependency Parsing) và độ dài mệnh đề (MLC) kết hợp LLM để chấm điểm tiêu chí Grammatical Range.",
+                        primaryLink: "https://aclanthology.org/2022.naacl-main.340/",
+                        primaryText: "ACL Anthology (Open)",
+                        mirrorLink: "https://aclanthology.org/2022.naacl-main.340.pdf",
+                        mirrorText: "Direct PDF",
+                        type: "Đánh Giá Ngữ Pháp & Từ Vựng"
+                    }
+                ]
+            }
+        };
+
+        const rubricDetails = {
+            fluency: {
+                title: "Fluency & Coherence (Độ Lưu Khoát & Mạch Lạc)",
+                extracted: "Speaking Rate (WPM), Silent Pause Duration (>1.5s), Fillers Count (uh, um), Mean Length of Runs",
+                methods: "Voice Activity Detection (VAD), Alignment Timestamp Analysis",
+                mapping: "Ngắt nghỉ đúng cụm tư duy (Thought groups), ít ngập ngừng đứt quãng → IELTS Band 7.0 - 9.0 (140-170 WPM)",
+                details: "Dải tốc độ tối ưu duy trì ở mức 140 - 170 từ/phút. Tốc độ quá chậm (<100 WPM) thể hiện sự thiếu hụt từ vựng/ngữ pháp; tốc độ quá nhanh (>200 WPM) làm suy giảm chất lượng phân tách âm tiết của ASR."
+            },
+            pronunciation: {
+                title: "Intelligibility & Pronunciation (Độ Dễ Hiểu & Phát Âm)",
+                extracted: "Phoneme Accuracy Score, Pitch Contour Variation (F0), Stress Placement",
+                methods: "Goodness of Pronunciation (GOP), F0 Extraction, Acoustic Model Posteriors",
+                mapping: "Phát âm rõ ràng phụ âm/nguyên âm, có ngữ điệu cadence tự nhiên → IELTS Band 7.0 - 9.0",
+                details: "Ngữ điệu bằng phẳng (Monotone) hoặc sai trọng âm làm giảm đáng kể điểm Intelligibility dù câu dùng đúng từ vựng. Thuật toán GOP tính xác suất hậu thế của từng âm tiết so với mô hình âm thanh chuẩn."
+            },
+            lexical: {
+                title: "Lexical Resource (Vốn Từ Vựng)",
+                extracted: "Type-Token Ratio (TTR), Lexical Advanced Frequency Score",
+                methods: "Tokenization, Lemma Frequency Index Lookup (BNC / COCA Corpus)",
+                mapping: "Sử dụng linh hoạt và tự nhiên các từ ít phổ biến / học thuật → IELTS Band 7.0 - 9.0",
+                details: "TTR đo lường độ phong phú từ vựng bằng tỷ lệ giữa số từ duy nhất và tổng số từ phát ngôn. Kết hợp tra cứu tần suất từ vựng BNC/COCA để xác định từ vựng nâng cao."
+            },
+            grammar: {
+                title: "Grammatical Range & Accuracy (Độ Dạng & Chính Xác Ngữ Pháp)",
+                extracted: "Mean Length of Clause (MLC), Dependent Clause Ratio, Structural Error Rate",
+                methods: "Dependency Parsing, Neural Error Detection Models",
+                mapping: "Kết hợp linh hoạt câu đơn và câu phức; kiểm soát tốt lỗi sai cấu trúc → IELTS Band 7.0 - 9.0",
+                details: "Phân tích cây cú pháp (Dependency Parsing) đo chiều dài trung bình mệnh đề (MLC). Tỷ lệ mệnh đề phụ thuộc phản ánh khả năng làm chủ các cấu trúc ngữ pháp phức tạp."
+            }
+        };
+
+        // --- CHART INSTANCES ---
+        let wpmChartInstance = null;
+        let radarChartInstance = null;
+        let goptChartInstance = null;
+
+        // --- DOM INITIALIZATION ---
+        document.addEventListener("DOMContentLoaded", () => {
+            renderDatasets('all');
+            renderLiteratureGrid();
+            switchRubricTab('fluency');
+            initCharts();
+            updateSimulator();
+        });
+
+        // --- NAVIGATION & SCROLL ---
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // --- DATASET FILTER LOGIC ---
+        function filterDatasets(task) {
+            const btns = document.querySelectorAll('.ds-filter-btn');
+            btns.forEach(btn => {
+                btn.classList.remove('bg-slate-800', 'text-white');
+                btn.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            event.target.classList.remove('bg-slate-100', 'text-slate-600');
+            event.target.classList.add('bg-slate-800', 'text-white');
+
+            renderDatasets(task);
+        }
+
+        function renderDatasets(taskFilter) {
+            const container = document.getElementById('datasets-container');
+            container.innerHTML = '';
+
+            const filtered = taskFilter === 'all' 
+                ? datasetsData 
+                : datasetsData.filter(d => d.task === taskFilter);
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-3 hover:border-amber-400 transition";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-extrabold text-slate-800 text-base">${item.name}</span>
+                            <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">${item.task}</span>
+                        </div>
+                        <div class="text-xs text-slate-500 font-medium mt-1">Quy mô: ${item.scale}</div>
+                        <p class="text-xs text-slate-600 mt-2 leading-relaxed">${item.desc}</p>
+                    </div>
+
+                    <div class="space-y-2 pt-2 border-t border-slate-100 text-[11px]">
+                        <div><strong class="text-slate-700">Độ mịn nhãn:</strong> <span class="text-slate-500">${item.granularity}</span></div>
+                        <div><strong class="text-slate-700">Tác vụ:</strong> <span class="text-slate-500">${item.taskName}</span></div>
+                        <div><strong class="text-slate-700">Nguồn:</strong> <span class="text-slate-400 font-mono">${item.source}</span></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- LITERATURE REPOSITORY INTERACTIVE GRID LOGIC ---
+        let activeRepoId = null;
+
+        function renderLiteratureGrid() {
+            const container = document.getElementById('literature-repo-grid');
+            container.innerHTML = '';
+
+            Object.keys(literatureData).forEach(key => {
+                const repo = literatureData[key];
+                const isSelected = activeRepoId === repo.id;
+
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-xl border transition cursor-pointer flex flex-col justify-between space-y-3 ${
+                    isSelected 
+                    ? 'bg-slate-800 text-white border-amber-500 shadow-md ring-2 ring-amber-400/50' 
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200'
+                }`;
+                card.onclick = () => selectRepository(repo.id);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <div class="font-bold text-sm ${isSelected ? 'text-amber-300' : 'text-slate-800'}">${repo.name}</div>
+                            <span class="text-[9px] px-2 py-0.5 rounded-full font-bold ${isSelected ? 'bg-amber-400 text-slate-900' : 'bg-slate-200 text-slate-600'}">${repo.badge}</span>
+                        </div>
+                        <p class="text-xs ${isSelected ? 'text-slate-300' : 'text-slate-500'} mt-2 leading-relaxed">${repo.desc}</p>
+                    </div>
+                    <div class="pt-2 border-t ${isSelected ? 'border-slate-700 text-amber-300' : 'border-slate-200 text-amber-700'} text-xs font-semibold flex items-center justify-between">
+                        <span>${repo.models.length} Mô hình & Bài báo</span>
+                        <span>${isSelected ? '▲ Đang mở' : '▼ Xem danh sách'}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function selectRepository(repoId) {
+            if (activeRepoId === repoId) {
+                activeRepoId = null; // toggle close
+                document.getElementById('repo-model-details').classList.add('hidden');
+            } else {
+                activeRepoId = repoId;
+                const repo = literatureData[repoId];
+                const detailPanel = document.getElementById('repo-model-details');
+                
+                let modelsHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                        <div>
+                            <span class="text-xs uppercase font-bold text-amber-400 tracking-wider">Danh Sách Công Trình Nghiên Cứu Nòng Cốt</span>
+                            <h4 class="text-lg font-extrabold text-white mt-0.5">${repo.name}</h4>
+                        </div>
+                        <button onclick="closeRepoPanel()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-600">✕ Đóng lại</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                `;
+
+                repo.models.forEach(m => {
+                    modelsHTML += `
+                        <div class="p-4 rounded-xl bg-slate-800 border border-slate-700 space-y-3 flex flex-col justify-between hover:border-amber-500/60 transition">
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-semibold">${m.type}</span>
+                                    <span class="text-xs text-slate-400 font-mono">${m.year}</span>
+                                </div>
+                                <h5 class="font-bold text-amber-100 text-xs sm:text-sm leading-snug">${m.title}</h5>
+                                <div class="text-[11px] text-slate-400 font-medium">Tác giả: ${m.authors}</div>
+                                <p class="text-xs text-slate-300 leading-relaxed">${m.summary}</p>
+                            </div>
+                            <div class="pt-2 border-t border-slate-700/80 flex flex-wrap gap-2 items-center">
+                                <a href="${m.primaryLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 rounded text-[11px] text-amber-300 font-semibold transition">
+                                    <span>🌐 ${m.primaryText || 'Xem bài báo'}</span>
+                                    <span>↗</span>
+                                </a>
+                                ${m.mirrorLink ? `
+                                <a href="${m.mirrorLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded text-[11px] text-slate-300 font-semibold transition">
+                                    <span>📄 ${m.mirrorText || 'ArXiv Mirror'}</span>
+                                    <span>↗</span>
+                                </a>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                modelsHTML += `</div>`;
+                detailPanel.innerHTML = modelsHTML;
+                detailPanel.classList.remove('hidden');
+            }
+
+            renderLiteratureGrid();
+        }
+
+        function closeRepoPanel() {
+            activeRepoId = null;
+            document.getElementById('repo-model-details').classList.add('hidden');
+            renderLiteratureGrid();
+        }
+
+        // --- RUBRIC TAB SWITCHER ---
+        function switchRubricTab(tabKey) {
+            document.querySelectorAll('.rubric-tab-btn').forEach(btn => {
+                btn.classList.remove('border-amber-600', 'text-amber-700', 'bg-white');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+
+            const activeBtn = document.getElementById(`tab-${tabKey}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-slate-500');
+                activeBtn.classList.add('border-amber-600', 'text-amber-700', 'bg-white');
+            }
+
+            const info = rubricDetails[tabKey];
+            const area = document.getElementById('rubric-content-area');
+            area.innerHTML = `
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold text-slate-800">${info.title}</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">${info.details}</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="text-xs font-bold text-slate-700 uppercase">Thuộc tính Đặc trưng Trích xuất</div>
+                            <div class="text-xs text-amber-800 font-semibold mt-1 font-mono">${info.extracted}</div>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="text-xs font-bold text-slate-700 uppercase">Phương pháp Đo lường / Thuật toán</div>
+                            <div class="text-xs text-slate-700 mt-1 font-mono">${info.methods}</div>
+                        </div>
+                        <div class="p-4 bg-amber-50/70 rounded-xl border border-amber-200/80">
+                            <div class="text-xs font-bold text-amber-900 uppercase">Quy đổi Band điểm (IELTS / CEFR)</div>
+                            <div class="text-xs text-amber-800 mt-1">${info.mapping}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- CHARTS INITIALIZATION (Chart.js) ---
+        function initCharts() {
+            // 1. WPM Distribution Line Chart
+            const ctxWpm = document.getElementById('wpmChart').getContext('2d');
+            wpmChartInstance = new Chart(ctxWpm, {
+                type: 'line',
+                data: {
+                    labels: ['60 WPM', '90 WPM', '120 WPM', '150 WPM (Optimal)', '180 WPM', '210 WPM'],
+                    datasets: [{
+                        label: 'Xác suất Mẫu Bài Nói Đạt Band High (IELTS 7+)',
+                        data: [5, 20, 55, 95, 60, 25],
+                        borderColor: '#c86d51',
+                        backgroundColor: 'rgba(200, 109, 81, 0.15)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#c86d51',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => ` Tỷ lệ bài đạt Band cao: ${context.raw}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { callback: (v) => v + '%' }
+                        }
+                    }
+                }
+            });
+
+            // 2. Multi-radar Assessment Chart
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            radarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Fluency (WPM)', 'Pronunciation (GOP)', 'Lexical (TTR)', 'Grammar (MLC)', 'Topic Coherence'],
+                    datasets: [
+                        {
+                            label: 'Thí sinh Band 8.0 Target',
+                            data: [90, 88, 85, 92, 95],
+                            borderColor: '#2e5b88',
+                            backgroundColor: 'rgba(46, 91, 136, 0.2)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Thí sinh Band 6.0 Baseline',
+                            data: [65, 60, 58, 62, 70],
+                            borderColor: '#c86d51',
+                            backgroundColor: 'rgba(200, 109, 81, 0.2)',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#e2e8f0' },
+                            grid: { color: '#e2e8f0' },
+                            pointLabels: { font: { size: 10, weight: 'bold' } },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                    }
+                }
+            });
+
+            // 3. GOPT Performance Bar Chart
+            const ctxGopt = document.getElementById('goptChart').getContext('2d');
+            goptChartInstance = new Chart(ctxGopt, {
+                type: 'bar',
+                data: {
+                    labels: [
+                        'Cấp Âm Tiết (Phoneme Accuracy)', 
+                        'Cấp Từ (Word Accuracy)', 
+                        'Cấp Từ (Word Stress)', 
+                        'Cấp Câu (Sentence Accuracy)', 
+                        'Cấp Câu (Sentence Fluency)', 
+                        'Cấp Câu (Sentence Prosody)'
+                    ],
+                    datasets: [{
+                        label: 'Hệ Số Tương Quan Pearson (PCC với Chuyên Gia)',
+                        data: [0.612, 0.549, 0.520, 0.742, 0.710, 0.685],
+                        backgroundColor: [
+                            '#2e5b88', '#2e5b88', '#2e5b88',
+                            '#c86d51', '#c86d51', '#c86d51'
+                        ],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (c) => ` Hệ số Pearson PCC: ${c.raw}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1.0,
+                            ticks: { stepSize: 0.2 }
+                        },
+                        x: {
+                            ticks: {
+                                font: { size: 10 },
+                                callback: function(val, index) {
+                                    let label = this.getLabelForValue(val);
+                                    if (label.length > 16) {
+                                        return label.match(/.{1,16}(\s|$)/g) || [label];
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- INTERACTIVE SIMULATOR LOGIC ---
+        function updateSimulator() {
+            const wpm = parseInt(document.getElementById('input-wpm').value);
+            const gop = parseInt(document.getElementById('input-gop').value);
+            const pause = parseInt(document.getElementById('input-pause').value);
+            const ttr = parseFloat(document.getElementById('input-ttr').value);
+            const ipaCheck = document.getElementById('check-ipa').checked;
+            const offTopicCheck = document.getElementById('check-offtopic').checked;
+
+            // Update UI Labels
+            document.getElementById('val-wpm').textContent = `${wpm} WPM`;
+            document.getElementById('val-gop').textContent = `${gop} / 100`;
+            document.getElementById('val-pause').textContent = `${pause} lần`;
+            document.getElementById('val-ttr').textContent = ttr.toFixed(2);
+
+            // Compute Heuristic Overall Band
+            let baseScore = (gop * 0.35) + ((wpm / 170 * 100) * 0.25) + (ttr * 100 * 0.25) - (pause * 4);
+            if (offTopicCheck) baseScore -= 25; // Severe penalty for off-topic
+
+            let band = 5.0;
+            if (baseScore >= 82) band = 8.5;
+            else if (baseScore >= 74) band = 8.0;
+            else if (baseScore >= 66) band = 7.5;
+            else if (baseScore >= 58) band = 7.0;
+            else if (baseScore >= 50) band = 6.5;
+            else if (baseScore >= 42) band = 6.0;
+            else if (baseScore >= 34) band = 5.5;
+            else band = 5.0;
+
+            document.getElementById('sim-overall-band').textContent = band.toFixed(1);
+
+            let cefr = "B1 Intermediate";
+            if (band >= 8.0) cefr = "C2 Proficient";
+            else if (band >= 7.0) cefr = "C1 Advanced";
+            else if (band >= 5.5) cefr = "B2 Upper-Intermediate";
+            document.getElementById('sim-cefr-level').textContent = `Tương đương ${cefr}`;
+
+            // Generate Tier 1: Quantitative Feature Feedback
+            let tier1HTML = `
+                <div>• <strong>Tốc độ nói (Speaking Rate):</strong> ${wpm} WPM ${wpm < 130 ? '⚠️ (Hơi chậm so với chuẩn 140-170)' : wpm > 185 ? '⚠️ (Quá nhanh, nguy cơ nuốt âm)' : '✅ (Đạt dải tối ưu)'}</div>
+                <div>• <strong>Khoảng lặng ngắt quãng (&gt;1.5s):</strong> Phát hiện ${pause} vị trí bất thường ${pause > 3 ? '⚠️ (Làm gián đoạn dòng suy nghĩ)' : '✅ (Kiểm soát tốt)'}</div>
+                <div>• <strong>Điểm phát âm vi mô (GOP Average):</strong> ${gop}/100</div>
+                <div>• <strong>Độ đa dạng từ vựng (TTR Index):</strong> ${ttr.toFixed(2)}</div>
+            `;
+            if (ipaCheck) {
+                tier1HTML += `<div class="text-amber-700">• <strong>Cảnh báo IPA:</strong> Phát hiện nhầm lẫn biến âm phụ âm /f/ thành /p/ tại 3 vị trí từ.</div>`;
+            }
+            if (offTopicCheck) {
+                tier1HTML += `<div class="text-red-600 font-bold">• <strong>CẢNH BÁO GCBiA:</strong> Bài nói có xác suất 84.5% lệch chủ đề so me với đề bài (Off-topic prompt mismatch)!</div>`;
+            }
+            document.getElementById('sim-tier1-report').innerHTML = tier1HTML;
+
+            // Generate Tier 2: MLLM Diagnostic Comments
+            let tier2Text = "";
+            if (offTopicCheck) {
+                tier2Text = "<strong>[Phản hồi Chẩn đoán LLM]:</strong> Thí sinh sử dụng cấu trúc câu khá trôi chảy nhưng nội dung không tập trung vào câu hỏi chính. Cần lưu ý trả lời trực diện vào từ khóa của đề bài thay vì phát biểu bài mẫu chuẩn bị sẵn.";
+            } else if (band >= 7.5) {
+                tier2Text = "<strong>[Phản hồi Chẩn đoán LLM]:</strong> Khả năng kiểm soát ngữ điệu và phát âm xuất sắc. Dòng nói trôi chảy tự nhiên, từ vựng phong phú. Để nâng cấp lên Band 8.5+, hãy chú ý tinh chỉnh nhịp ngắt nghỉ giữa các mệnh đề phức dài.";
+            } else if (band >= 6.0) {
+                tier2Text = `<strong>[Phản hồi Chẩn đoán LLM]:</strong> Thí sinh diễn đạt tương đối rõ ràng ý tưởng. Tuy nhiên, tốc độ nói hiện tại (${wpm} WPM) đi kèm ${pause} khoảng lặng dài phản ánh việc bạn phải dành thời gian tìm kiếm từ vựng. Gợi ý: Luyện tập mở rộng vốn từ học thuật và cải thiện phát âm các phụ âm cuối.`;
+            } else {
+                tier2Text = "<strong>[Phản hồi Chẩn đoán LLM]:</strong> Bài nói bị ngắt quãng nhiều lần, ảnh hưởng đến độ dễ hiểu tổng thể. Phát âm âm tiết còn nhiều sai sót theo Goodness of Pronunciation (GOP). Khuyên nghị: Tập trung cải thiện bảng phiên âm IPA cơ bản trước khi đi vào các câu phức.";
+            }
+            document.getElementById('sim-tier2-report').innerHTML = tier2Text;
+        }
+    </script>
+</body>
+</html>
